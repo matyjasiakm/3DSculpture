@@ -20,15 +20,16 @@ using System.IO;
 
 namespace _3DSculpture
 {
-    /// <summary>
-    /// Logika interakcji dla klasy MainWindow.xaml
-    /// </summary>
+    
     public partial class MainWindow : Window
     {
+        //Model triangle list
         List<Triangle> triangleList;
         Material frontMaterial;
         GeometryModel3D triangleModel;
+        //Drawed model triangles
         MeshGeometry3D mesh;
+        //Model edges
         ScreenSpaceLines3D wire;
         Viewport3D viewport;
         ModelVisual3D myModelVisual3D;
@@ -37,6 +38,7 @@ namespace _3DSculpture
         Point prevClickedPoint;
         bool drawLines;
         MaterialGroup mg;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -60,24 +62,25 @@ namespace _3DSculpture
             mesh = new MeshGeometry3D();           
             wire = new ScreenSpaceLines3D();
 
+            //Generate cube
             triangleList = Triangle.GenerateCube(100);
             InvalidateModel(drawLines);
+            //Init edge drawing
             wire.Color = Colors.Black;
             wire.Thickness = 3;
-            
             wire.Transform = new Transform3DGroup();
-
+            //Init model color
             frontMaterial =new DiffuseMaterial(new SolidColorBrush(Color.FromArgb(25,83,83,83)));
             mg.Children.Add(frontMaterial);
             mg.Children.Add(new EmissiveMaterial(new SolidColorBrush(Color.FromArgb(25, 83, 83, 83))));
             model_color_frame.Background = new SolidColorBrush(Color.FromArgb(25, 83, 83, 83));
+            //Init triangle model to draw
             triangleModel =new GeometryModel3D(mesh, mg);
-            //triangleModel.BackMaterial= new DiffuseMaterial(new SolidColorBrush(Colors.Red));
-
             triangleModel.Transform = new Transform3DGroup();
             ModelVisual3D visualModel = new ModelVisual3D();
             visualModel.Content = triangleModel;
            
+            //Add wire and model to draw
             viewport.Children.Add(visualModel);
             viewport.Children.Add(wire);
 
@@ -85,10 +88,7 @@ namespace _3DSculpture
 
 
         }
-
-
-
-
+        //Pull triangles, push triangles, and helping camera move
         private void MouseDownGetPointFromModel(object sender, System.Windows.Input.MouseEventArgs e)
         {
             if ((Keyboard.IsKeyDown(Key.LeftCtrl) && e.LeftButton == MouseButtonState.Pressed))
@@ -126,9 +126,10 @@ namespace _3DSculpture
                     Console.WriteLine("    (" +
                         mesh.Positions[mesh_result.VertexIndex3].ToString()
                             + ")");
-
+                    //Getting clicked triangle
                     Triangle t = triangleList.GetTriangle(mesh.Positions[mesh_result.VertexIndex1], mesh.Positions[mesh_result.VertexIndex2], mesh.Positions[mesh_result.VertexIndex3]);
                     if (t == null) return;
+                    //Divide triangle and push or push if triangle is too small
                     if (t.GetTriangleArea() > 100)
                         triangleList.AddRange(Triangle.ConcentrateTriangleInPoint(triangleList, t, mesh_result.PointHit, slider.Value));
                     else
@@ -139,6 +140,7 @@ namespace _3DSculpture
 
 
             }
+            //For camera move
             else if (e.MiddleButton == MouseButtonState.Pressed)
             {
                 prevClickedPoint = e.GetPosition(viewport3D);
@@ -179,15 +181,17 @@ namespace _3DSculpture
                         mesh.Positions[mesh_result.VertexIndex3].ToString()
                             + ")");
 
+                    //Getting clicked triangle
                     Triangle t = triangleList.GetTriangle(mesh.Positions[mesh_result.VertexIndex1], mesh.Positions[mesh_result.VertexIndex2], mesh.Positions[mesh_result.VertexIndex3]);
                     if (t == null) return;
+                    //Pull triangles
                     Triangle.PullTriangle(triangleList, t, slider.Value,slider2.Value);
                     InvalidateModel(drawLines);
                 }
 
             }
-        }
-        
+        }    
+        //Move camera
         private void OnMouseMove(object sender, System.Windows.Input.MouseEventArgs e)
         {
             if(e.MiddleButton == MouseButtonState.Pressed)
@@ -201,6 +205,7 @@ namespace _3DSculpture
                 prevClickedPoint = e.GetPosition(viewport3D);
             }
         }
+        //Draw model
         private void InvalidateModel(bool drawLines)
         {
             mesh.TriangleIndices.Clear();
@@ -213,7 +218,6 @@ namespace _3DSculpture
             {
                 if (drawLines)
                 {
-
                 wire.Points.Add(elem.p1);
                 wire.Points.Add(elem.p2);
                 wire.Points.Add(elem.p2);
@@ -221,6 +225,7 @@ namespace _3DSculpture
                 wire.Points.Add(elem.p3);
                 wire.Points.Add(elem.p1);
                 }
+                //Setting vertices and their indexes in mesh
                 mesh.Positions.Add(elem.p1);
                 mesh.TriangleIndices.Add(pom);
 
@@ -241,7 +246,7 @@ namespace _3DSculpture
             }
 
         }
-
+        //Camera zoom in or out with mouse wheel
         private void Border_MouseWheel(object sender, MouseWheelEventArgs e)
         {
             Vector3D vector = (camMain.LookDirection);
@@ -257,13 +262,14 @@ namespace _3DSculpture
             }
             
         }
-
+        //Generate new cube
         private void Button_Click(object sender, RoutedEventArgs e)
         {
             triangleList.Clear();
             triangleList.AddRange(Triangle.GenerateCube(100));
             InvalidateModel(drawLines);
         }
+        //Export model to text .stl file
         private void Button_Save(object sender, RoutedEventArgs e)
         {
 
@@ -301,7 +307,7 @@ namespace _3DSculpture
 
 
         }
-
+        //Load .stl text file
         private void Button_Open(object sender, RoutedEventArgs e)
         {
 
@@ -346,13 +352,13 @@ namespace _3DSculpture
 
 
         }
-
+        //Reset camera view
         private void Camera_Reset(object sender, RoutedEventArgs e)
         {
             camMain.Position = new Point3D(300,0,0);
             camMain.LookDirection = new Vector3D(-camMain.Position.X, 0, 0);
         }
-
+        //Change model color
         private void Change_Color(object sender, RoutedEventArgs e)
         {
             ColorDialog colorDialog = new ColorDialog();
@@ -367,13 +373,13 @@ namespace _3DSculpture
                 triangleModel.Material = mg;
             }
         }
-
+        //Draw model lines
         private void CheckBox_Checked(object sender, RoutedEventArgs e)
         {
             drawLines = true;
             InvalidateModel(drawLines);
         }
-
+        //Do not draw model lines
         private void CheckBox_Unchecked(object sender, RoutedEventArgs e)
         {
             drawLines = false;
