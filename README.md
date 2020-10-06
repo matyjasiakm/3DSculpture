@@ -15,7 +15,7 @@ The application provides:
 *	Change pull/push propagation on other edges/vertices.
 *	Camera centering.
 
-![](sculptureGUI.jpg =500x350 "3DSculpture GUI")
+![](sculptureGUI.jpg "3DSculpture GUI")
 *3DSculpture Graphical User Interface*
 
 More information about how to use 3DSculpture application [[3DSculpture instruction](instruction.md)]
